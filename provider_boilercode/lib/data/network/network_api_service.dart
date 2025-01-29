@@ -9,7 +9,8 @@ import 'base_api_service.dart';
 
 class NetworkApiService extends BaseApiService {
   @override
-  Future getGetApiResponse(String url) async {
+  Future getGetApiResponse(String url,
+      {Map<dynamic, dynamic>? headers, String? token}) async {
     dynamic jsonResponse;
 
     try {
@@ -25,7 +26,7 @@ class NetworkApiService extends BaseApiService {
   }
 
   @override
-  Future getPostApiResponse(String url, dynamic data) async {
+  Future getPostApiResponse(String url, dynamic data, {String? token}) async {
     dynamic jsonResponse;
 
     try {
@@ -42,19 +43,22 @@ class NetworkApiService extends BaseApiService {
 
   dynamic returnResponse(http.Response response) {
     switch (response.statusCode) {
-      case 200:
+      case 201: // CREATED
+      case 200: // OK
         dynamic jsonResponse = jsonDecode(response.body);
         return jsonResponse;
+
       case 400:
         throw BadRequestException(response.body.toString());
       case 404:
         throw BadRequestException(response.body);
-      case 401:
+      case 401: // UNAUTHORIZED ACCESS { TOKEN IS MISSING }
         throw UnauthorizedException(response.body);
       case 403:
         throw UnauthorizedException(response.body);
-      case 500:
+      case 500: // SERVER ERROR
         throw ServerException(response.body);
+
       default:
         throw FetchDataException(
             'Error with Status Code ${response.statusCode}');

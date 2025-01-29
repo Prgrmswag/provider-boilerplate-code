@@ -1,4 +1,7 @@
 abstract class BaseApiService {
-  Future<dynamic> getGetApiResponse(String url);
-  Future<dynamic> getPostApiResponse(String url, dynamic data);
+//BaseApi services contains all the API's like GET , POST , DELETE .
+// BaseApi services are connected to repositories .
+
+  Future<dynamic> getGetApiResponse(String url, {Map headers, String token});
+  Future<dynamic> getPostApiResponse(String url, dynamic data, {String token});
 }
