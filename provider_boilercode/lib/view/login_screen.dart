@@ -15,11 +15,13 @@ class LoginScreen extends StatelessWidget {
 
     return Scaffold(
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           const Text('Login screen '),
 
           RoundButton(
-            loading: authViewModel.loading,
+              loading: authViewModel.loading,
               title: 'Login',
               onPress: () {
                 Map data = {
@@ -38,7 +40,7 @@ class LoginScreen extends StatelessWidget {
           //   'password': passwordController.text.toString()
           // };
 
-          // authViewModel.loginApi(data, context);
+          // authViewModel.postApi(data, context);
           //     },
           //     child: const Text('Login'))
         ],

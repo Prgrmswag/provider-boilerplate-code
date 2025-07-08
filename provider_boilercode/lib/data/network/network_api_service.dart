@@ -1,45 +1,97 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart ' as http;
-import 'package:http/http.dart%20';
 
 import '../app_exceptions.dart';
 import 'base_api_service.dart';
 
 class NetworkApiService extends BaseApiService {
-  @override
+ @override
   Future getGetApiResponse(String url,
-      {Map<dynamic, dynamic>? headers, String? token}) async {
-    dynamic jsonResponse;
-
+      {Map<String, String>? headers,
+      Map<String, dynamic>? body,
+      String? token}) async {
+    dynamic responseJson;
     try {
-      final response =
-          await http.get(Uri.parse(url)).timeout(const Duration(seconds: 10));
+      var request = http.Request('GET', Uri.parse(url));
 
-      jsonResponse = returnResponse(response);
+      // Add headers
+      Map<String, String> finalHeaders = headers ?? {};
+      if (token != null) {
+        finalHeaders['Authorization'] = 'Bearer $token';
+      }
+      request.headers.addAll(finalHeaders);
+
+      // Add body if provided
+      if (body != null) {
+        request.body = json.encode(body);
+      }
+
+      var streamedResponse =
+          await request.send().timeout(const Duration(seconds: 10));
+      var response = await http.Response.fromStream(streamedResponse);
+
+      if (kDebugMode) {
+        print("Response status: ${response.statusCode}");
+        print("Response body: ${response.body}");
+      }
+
+      responseJson = returnResponse(response);
     } on SocketException {
-      throw FetchDataException('Please Check Your Internet Connection');
+      throw FetchDataException('No Internet Connection');
     }
-
-    return jsonResponse;
+    return responseJson;
   }
 
-  @override
-  Future getPostApiResponse(String url, dynamic data, {String? token}) async {
-    dynamic jsonResponse;
-
+ @override
+  Future getPostApiResponse(String url, dynamic data,
+      {String? cookie, String? token, File? file}) async {
+    dynamic responseJson;
     try {
-      Response response = await post(Uri.parse(url), body: data)
-          .timeout(const Duration(seconds: 10));
+      Map<String, String> headers = {
+        "Content-Type": "application/json",
+      };
 
-      jsonResponse = returnResponse(response);
+      if (cookie != null) {
+        headers["Cookie"] = "token=$cookie";
+      }
+
+      if (token != null) {
+        headers['Authorization'] = 'Bearer $token';
+      }
+
+      http.Response response;
+
+      if (file != null) {
+        // Multipart request for file upload
+        var request = http.MultipartRequest('POST', Uri.parse(url))
+          ..headers.addAll(headers)
+          ..fields.addAll(data);
+        request.files.add(await http.MultipartFile.fromPath('file', file.path));
+
+        var streamedResponse = await request.send();
+        response = await http.Response.fromStream(streamedResponse);
+      } else {
+        response = await http
+            .post(
+              Uri.parse(url),
+              headers: headers,
+              body: jsonEncode(data),
+            )
+            .timeout(const Duration(seconds: 10));
+      }
+
+      responseJson = returnResponse(response);
     } on SocketException {
-      throw FetchDataException('Please Check Your Internet Connection');
+      throw FetchDataException('No Internet Connection');
     }
-
-    return jsonResponse;
+    return responseJson;
   }
+
+ 
+
 
   dynamic returnResponse(http.Response response) {
     switch (response.statusCode) {
@@ -61,7 +113,7 @@ class NetworkApiService extends BaseApiService {
 
       default:
         throw FetchDataException(
-            'Error with Status Code ${response.statusCode}');
+            'Error Status Code ${response.statusCode}');
     }
   }
 }

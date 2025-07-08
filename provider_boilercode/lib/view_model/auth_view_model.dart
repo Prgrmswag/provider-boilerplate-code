@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:provider_boilercode/data/network/app_url.dart';
 import 'package:provider_boilercode/repository/auth_repository.dart';
 import 'package:provider_boilercode/utils/utils.dart';
 import 'package:provider_boilercode/view/home_screen.dart';
@@ -19,7 +20,7 @@ class AuthViewModel extends ChangeNotifier {
     // When API is hit setLoading to true
     setLoading(true);
 
-    _myRepo.loginApi(data).then((value) {
+    _myRepo.postApi(AppUrl.login, data).then((value) {
       // When API call is successful setLoading to false
       setLoading(false);
       Utils.toastMessage('Login successfull');
@@ -58,7 +59,7 @@ class AuthViewModel extends ChangeNotifier {
     // When API is hit setLoading to true
     setRegisterLoading(true);
 
-    _myRepo.registerApi(data).then((value) {
+    _myRepo.postApi(AppUrl.register, data).then((value) {
       // When API call is successful setLoading to false
       setRegisterLoading(false);
       Utils.toastMessage('Registration successfull');
